@@ -27,12 +27,16 @@ HANDLE close
 UNIX BUILD
 =====
 
-I only test tclopusfile under openSUSE LEAP 42.3.
+I only test tclopusfile under openSUSE LEAP 42.3 and Ubuntu 14.04.
 
 Users need install Opusfile development files.
 Below is an example for openSUSE:
 
     sudo zypper in opusfile-devel
+
+Below is an example for Ubuntu:
+
+    sudo apt-get install libopusfile-dev
 
 Building under most UNIX systems is easy, just run the configure script
 and then run make. For more information about the build process, see the
