@@ -52,6 +52,23 @@ below is an example:
     $ make
     $ make install
 
+WINDOWS BUILD
+=====
+
+## MSYS2/MinGW-W64
+
+Users can use MSYS2 pacman to install opusfile package.
+
+	$ pacman -S mingw-w64-x86_64-opusfile
+
+A not good news is you need modify `configure.ac` to indicate opusfile header files correct location.
+
+    -    #TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/win)\"])
+    +    TEA_ADD_INCLUDES([-I/mingw64/include/opus])
+
+Execute `autoconf` to update configure. Then you can `./configure`, `make` and `make install`
+to build and install.
+
 
 Example
 =====
