@@ -1,5 +1,5 @@
 /*
- * tclopus.c
+ * tclopusfile.c
  *
  *      Copyright (C) Danilo Chang 2018
  *
@@ -149,7 +149,8 @@ static int OpusObjCmd(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv
 tryagain:
       result = op_read(pOpus->file, pOpus->buffer, pOpus->buffersize, NULL);
       if(result <= 0 ) {
-         if (result == OP_HOLE) goto tryagain;             
+         if (result == OP_HOLE) goto tryagain;
+
          return TCL_ERROR;
       } else {
          return_obj = Tcl_NewStringObj((char *) pOpus->buffer,
@@ -203,6 +204,13 @@ tryagain:
         return TCL_ERROR;
       }
 
+      /*
+       * The metadata is stored as a series of (tag, value) pairs,
+       * in length-encoded string vectors, using the same format as
+       * Vorbis (without the final "framing bit"), Theora, and Speex,
+       * except for the packet header. The first occurrence of
+       * the '=' character delimits the tag and value.
+       */
       tags = op_tags(pOpus->file, -1);
       if(tags == NULL) {
         return TCL_ERROR;
