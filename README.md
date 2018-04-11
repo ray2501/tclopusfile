@@ -16,7 +16,7 @@ MIT
 Commands
 =====
 
-opusfile HANDLE path ?-buffersize size?  
+opusfile HANDLE path ?-buffersize size? ?-isurl boolean?  
 HANDLE buffersize size  
 HANDLE read   
 HANDLE seek location  
