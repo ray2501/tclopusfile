@@ -20,6 +20,7 @@ opusfile HANDLE path ?-buffersize size?
 HANDLE buffersize size  
 HANDLE read   
 HANDLE seek location  
+HANDLE getTags  
 HANDLE close
 
 

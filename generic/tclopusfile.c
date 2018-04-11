@@ -46,6 +46,15 @@ struct OpusData {
 
 TCL_DECLARE_MUTEX(myMutex);
 
+void split(char **array, char *str, const char *del) {
+   char *s = strtok(str, del);
+
+   while(s != NULL) {
+     *array++ = s;
+     s = strtok(NULL, del);
+   }
+}
+
 
 static int OpusObjCmd(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv){
   OpusData *pOpus = (OpusData *) cd;
@@ -56,6 +65,7 @@ static int OpusObjCmd(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv
     "buffersize",
     "read",
     "seek",
+    "getTags",
     "close", 
     0
   };
@@ -64,6 +74,7 @@ static int OpusObjCmd(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv
     OPUS_BUFFERSIZE,
     OPUS_READ,
     OPUS_SEEK,
+    OPUS_GETTAGS,
     OPUS_CLOSE,
   };
 
@@ -179,6 +190,47 @@ tryagain:
       }
 
       Tcl_SetObjResult(interp, return_obj);
+      break;
+    }
+
+    case OPUS_GETTAGS: {
+      Tcl_Obj *return_obj = NULL;
+      const OpusTags *tags;
+      int count = 0;
+
+      if( objc != 2 ){
+        Tcl_WrongNumArgs(interp, 2, objv, 0);
+        return TCL_ERROR;
+      }
+
+      tags = op_tags(pOpus->file, -1);
+      if(tags == NULL) {
+        return TCL_ERROR;
+      }
+
+      return_obj = Tcl_NewListObj(0, NULL);
+      for(count = 0; count < tags->comments; count++) {
+          char *array[2];
+          const char *del = "=";
+          split(array, tags->user_comments[count], del);
+
+          Tcl_ListObjAppendElement(interp, return_obj,
+                 Tcl_NewStringObj(array[0],
+                 strlen(array[0])));
+
+          if(array[1]==NULL) {
+              Tcl_ListObjAppendElement(interp, return_obj,
+                     Tcl_NewStringObj("",
+                     -1));
+          } else {
+              Tcl_ListObjAppendElement(interp, return_obj,
+                     Tcl_NewStringObj(array[1],
+                     strlen(array[1])));
+          }
+      }
+
+      Tcl_SetObjResult(interp, return_obj);
+
       break;
     }
 
