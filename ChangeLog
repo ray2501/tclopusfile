@@ -1,5 +1,6 @@
 2018-04-11  Danilo Chang
 
+    * Add op_open_url support
     * Add sub-command getTags
 
 2018-04-10  Danilo Chang

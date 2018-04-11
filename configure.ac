@@ -74,7 +74,7 @@ TEA_SETUP_COMPILER
 TEA_ADD_SOURCES([tclopusfile.c])
 TEA_ADD_HEADERS([])
 TEA_ADD_INCLUDES([-I/usr/include/opus])
-TEA_ADD_LIBS([-lopusfile])
+TEA_ADD_LIBS([-lopusfile -lopusurl])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
 TEA_ADD_TCL_SOURCES([])

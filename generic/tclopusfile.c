@@ -46,6 +46,7 @@ struct OpusData {
 
 TCL_DECLARE_MUTEX(myMutex);
 
+
 void split(char **array, char *str, const char *del) {
    char *s = strtok(str, del);
 
@@ -66,7 +67,7 @@ static int OpusObjCmd(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv
     "read",
     "seek",
     "getTags",
-    "close", 
+    "close",
     0
   };
 
@@ -274,15 +275,17 @@ static int OpusMain(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv){
   const char *zArg = NULL;
   const char *zFile = NULL;
   int buffersize = 0;
+  int isurl = 0;
   Tcl_DString translatedFilename;
   Tcl_Obj *pResultStr = NULL;
   int len;
   int i = 0;
   int error = 0;
+  OpusServerInfo info;
 
   if( objc < 3 || (objc&1)!=1 ){
     Tcl_WrongNumArgs(interp, 1, objv,
-      "HANDLE path ?-buffersize size? "
+      "HANDLE path ?-buffersize size? ?-isurl boolean? "
     );
     return TCL_ERROR;
   }
@@ -321,12 +324,18 @@ static int OpusMain(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv){
       p->buffersize = buffersize;
       p->buff_init = 1;
       Tcl_MutexUnlock(&myMutex);
+    } else if( strcmp(zArg, "-isurl")==0 ){
+      if( Tcl_GetBooleanFromObj(interp, objv[i+1], &isurl) ) return TCL_ERROR;
     }
   }
 
-  zFile = Tcl_TranslateFileName(interp, zFile, &translatedFilename);
-  p->file = op_open_file(zFile, &error);
-  Tcl_DStringFree(&translatedFilename);
+  if(isurl == 0) {
+    zFile = Tcl_TranslateFileName(interp, zFile, &translatedFilename);
+    p->file = op_open_file(zFile, &error);
+    Tcl_DStringFree(&translatedFilename);
+  } else {
+    p->file = op_open_url(zFile, &error, OP_GET_SERVER_INFO(&info), NULL);
+  }
 
   if(p->file == NULL) {
       Tcl_Free((char *)p);  //open fail, so we need free our memory
@@ -339,13 +348,50 @@ static int OpusMain(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv){
   p->samplerate = 48000;
   p->channels = op_channel_count(p->file, -1);
   p->bits = 16;
-  p->bitrate = 	op_bitrate(p->file, -1) / 1000;
-  p->length = (op_pcm_total(p->file, -1) / 48000);
+  if(isurl==0) {
+      p->bitrate = op_bitrate(p->file, -1) / 1000;
+      p->length = (op_pcm_total(p->file, -1) / 48000);
+  } else {
+      p->bitrate = 0;
+      p->length = 0;
+  }
 
   zArg = Tcl_GetStringFromObj(objv[1], 0);
   Tcl_CreateObjCommand(interp, zArg, OpusObjCmd, (char*)p, (Tcl_CmdDeleteProc *)NULL);
-
   pResultStr = Tcl_NewListObj(0, NULL);
+
+  if(isurl==1) {
+      if(info.name!=NULL) {
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("name", -1));
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj(info.name, -1));
+      }
+
+      if(info.description!=NULL) {
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("description", -1));
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj(info.description, -1));
+      }
+
+      if(info.genre!=NULL){
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("genre", -1));
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj(info.genre, -1));
+      }
+
+      if(info.url!=NULL){
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("url", -1));
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj(info.url, -1));
+      }
+
+      Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("is_public", -1));
+      Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewBooleanObj(info.is_public));
+
+      if(info.server!=NULL){
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("server", -1));
+          Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj(info.server, -1));
+      }
+
+      opus_server_info_clear(&info);
+  }
+
   Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("length", -1));
   Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewIntObj(p->length));
   Tcl_ListObjAppendElement(interp, pResultStr, Tcl_NewStringObj("bits", -1));
