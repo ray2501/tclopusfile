@@ -4,7 +4,7 @@
 
 Name:          tclopusfile
 Summary:       Tcl bindings for Opusfile library
-Version:       0.2
+Version:       0.3
 Release:       0
 License:       MIT
 Group:         Development/Libraries/Tcl
