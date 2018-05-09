@@ -49,6 +49,15 @@ test opusfile-1.4 {initialize wrong path} {*}{
     -result {1}
 }
 
+test opusfile-1.5 {unknown option} {*}{
+    -body {
+        opusfile opus0 path -aaa 123
+    }
+    -returnCodes error
+    -match glob
+    -result {unknown option*}
+}
+
 
 cleanupTests
 return

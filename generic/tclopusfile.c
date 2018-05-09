@@ -324,8 +324,15 @@ static int OpusMain(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv){
       p->buffersize = buffersize;
       p->buff_init = 1;
       Tcl_MutexUnlock(&myMutex);
-    } else if( strcmp(zArg, "-isurl")==0 ){
-      if( Tcl_GetBooleanFromObj(interp, objv[i+1], &isurl) ) return TCL_ERROR;
+    } else if( strcmp(zArg, "-isurl")==0 ) {
+      if( Tcl_GetBooleanFromObj(interp, objv[i+1], &isurl) ) {
+          Tcl_Free((char *)p);
+          return TCL_ERROR;
+      }
+    } else {
+      Tcl_Free((char *)p);
+      Tcl_AppendResult(interp, "unknown option: ", zArg, (char*)0);
+      return TCL_ERROR;
     }
   }
 
