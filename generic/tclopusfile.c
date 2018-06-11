@@ -154,7 +154,7 @@ tryagain:
 
          return TCL_ERROR;
       } else {
-         return_obj = Tcl_NewStringObj((char *) pOpus->buffer,
+         return_obj = Tcl_NewByteArrayObj((unsigned char *) pOpus->buffer,
                              result * pOpus->channels * sizeof(opus_int16));
 
          Tcl_SetObjResult(interp, return_obj);
