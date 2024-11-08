@@ -278,7 +278,7 @@ static int OpusMain(void *cd, Tcl_Interp *interp, int objc,Tcl_Obj *const*objv){
   int isurl = 0;
   Tcl_DString translatedFilename;
   Tcl_Obj *pResultStr = NULL;
-  int len;
+  Tcl_Size len;
   int i = 0;
   int error = 0;
   OpusServerInfo info;
